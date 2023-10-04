@@ -95,6 +95,7 @@ class Login2 extends StatelessWidget {
     @override
     Widget build(BuildContext context) {
       final screenSize = MediaQuery.of(context).size;
+
       return Scaffold(
         body: Container(
           color: Colors.white,
@@ -111,7 +112,7 @@ class Login2 extends StatelessWidget {
                   children: [
                     FlutterLogin(
                       // title: 'ECORP',
-                      logo: AssetImage('assets/images/schrockInnovationsLogo.png' ),
+                      logo: const AssetImage('assets/images/schrockInnovationsLogo.png' ),
                       onLogin: _authUser,
                       onSignup: _signupUser,
                       onSubmitAnimationCompleted: () {
@@ -145,7 +146,7 @@ class Login2 extends StatelessWidget {
                           // decoration: TextDecoration.underline,
                         // ),
                         textFieldStyle:
-                          TextStyle(
+                          const TextStyle(
                             color: Colors.black,
                             shadows: [Shadow(color: Colors.grey, )],
                           ),

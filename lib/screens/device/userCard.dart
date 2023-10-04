@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import '../../models/settings.dart';
 import '../../widgets/titleWid.dart';
 import '../../widgets/subTitleWid.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class UserCard extends StatefulWidget {
   Settings _settings;
@@ -74,18 +75,18 @@ class _UserCardState extends State<UserCard> {
 
                                 Divider(),
                                 TitleWid("Support"),
-                                // ElevatedButton(
-                                //     onPressed: (){},
-                                //     child: const Text('Buy License'),
-                                //     style: ElevatedButton.styleFrom(
-                                //       foregroundColor: Colors.blue,
-                                //       backgroundColor: Colors.white,
-                                //       textStyle: const TextStyle(
-                                //           color: Colors.black,
-                                //           fontSize: 20,
-                                //           fontWeight: FontWeight.bold),
-                                //     )
-                                // ),
+                                ElevatedButton(
+                                    onPressed: (){launchUrl(Uri.parse("https://schrockinnovations.com/product/schrock-safe-upgrade-windows-11-23h2-fall-update/"));},
+                                    child: const Text('Buy License'),
+                                    style: ElevatedButton.styleFrom(
+                                      foregroundColor: Colors.blue,
+                                      backgroundColor: Colors.white,
+                                      textStyle: const TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold),
+                                    )
+                                ),
                               ],
                             ),
                           ),

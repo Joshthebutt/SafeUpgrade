@@ -7,10 +7,9 @@
  */
 
 import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:safe_upgrade/widgets/hardDriveInfo.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 import '../../models/settings.dart';
 import '../../models/api.dart';
 import '../../models/download/download_provider.dart';
@@ -18,13 +17,13 @@ import '../../models/download/download_hash.dart';
 import '../../models/download/download_extractFile.dart';
 import '../../models/download/download_executeInstaller.dart';
 import '../../models/download/download_setStartup.dart';
-import '../../models/driveAdviser.dart';
 import '../../models/constants.dart';
-
 import '../../screens/device/deviceCard.dart';
 import '../../screens/device/userCard.dart';
 import '../../widgets/statusBarWid.dart';
 import '../../screens/programs/program.dart';
+
+
 
 class DashboardLayout extends StatefulWidget {
   Settings _settings;
@@ -42,7 +41,7 @@ class _DashboardLayoutState extends State<DashboardLayout> {
   int _downloadPercentage = 0;
   String _zipFilePath = "";
   int _hashResult = 0; // 0 - Validating, 1 - Wrong, 2 - Good
-
+  String _driveHealth = "";
   String get zipFilePath => _zipFilePath;
   // late bool _hasDA = false;
   // late bool _hasSophos = false;
@@ -105,17 +104,24 @@ class _DashboardLayoutState extends State<DashboardLayout> {
     print(url);
     print(file);
     return x.downloadFile(url,
-                        file,
-                        progress)
+        file,
+        progress)
         .then((fileWhereDownloaded) {
-          print(fileWhereDownloaded);
-          return fileWhereDownloaded;
+      print(fileWhereDownloaded);
+      return fileWhereDownloaded;
     });
   }
   installFile(){
 
   }
 
+  Future<String> getMainDriveHealth() async {
+    widget._settings.driveHealth = await driveHealthGetter().health(0);
+
+    _driveHealth = await driveHealthGetter().health(0);
+
+    return _driveHealth;
+  }
   Future<bool> hashValidation() {
     DownloadHash _dh = DownloadHash();
     return _dh.getFileSha1(zipFilePath).then((value) {
@@ -138,9 +144,12 @@ class _DashboardLayoutState extends State<DashboardLayout> {
 
   Future<int> getLicensesAvailable() async {
     var x = Api();
+    await driveHealthGetter().health(0).then((value) {
+      _driveHealth = value;
+    });
     return await x
         .getLicense(
-            widget._settings.token, widget._settings.machine['deviceId'])
+        widget._settings.token, widget._settings.machine['deviceId'])
         .then((response) {
       setState(() {
         widget._settings.licenseAvailable = response['data'];
@@ -176,7 +185,7 @@ class _DashboardLayoutState extends State<DashboardLayout> {
     return SnackBar(
       content: Text(
         value,
-        style: TextStyle(fontSize: 20),
+        style: const TextStyle(fontSize: 20),
       ),
       action: SnackBarAction(
         label: 'close',
@@ -236,7 +245,7 @@ class _DashboardLayoutState extends State<DashboardLayout> {
       Api _api = Api();
       _api
           .burnLicense(
-              widget.settings.token, widget.settings.machine['deviceId'])
+          widget.settings.token, widget.settings.machine['deviceId'])
           .then((value) {
         widget.settings.isReinstalling = value['success'];
         widget.settings.licenseAvailable--;
@@ -246,7 +255,7 @@ class _DashboardLayoutState extends State<DashboardLayout> {
     var x = FileDownloaderProvider();
     x
         .downloadFile("https://schrockinnovations.com/downloads/OLD/",
-            "test.zip", progressPercentage)
+        "test.zip", progressPercentage)
         .then((onValue) {
       setState(() {
         _zipFilePath = onValue;
@@ -280,58 +289,58 @@ class _DashboardLayoutState extends State<DashboardLayout> {
             ),
           ),
           !_isDownloading ?
-              Container(
-                height: 230,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(15.0, 15.0, 15.0,0.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Expanded(
-                        child: Program(sophos_logo,
-                            sophos_name,
-                            sophos_desc,
-                            sophos_realPath,
-                            sophos_button,
-                                (){launchURL(Uri.parse(sophos_link));}
-                        ),
-                      ),
-                      Expanded(
-                        child: Program(su_logo,
-                            su_name,
-                            su_desc,
-                            su_realPath,
-                            su_button,
-                                (){}
-                        ),
-                      ),
-                      Expanded(
-                        child: Program(da_logo,
-                            da_name,
-                            da_desc,
-                            da_realPath,
-                            da_button,
-                                (){
-                                  downloadFile(da_link['url'],da_link['file']);
-                                }
-                        ),
-                      ),
-                    ],
+          Container(
+            height: 230,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(15.0, 15.0, 15.0,0.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Expanded(
+                    child: Program(sophos_logo,
+                        sophos_name,
+                        sophos_desc,
+                        sophos_realPath,
+                        sophos_button,
+                            (){launchURL(Uri.parse(sophos_link));}
+                    ),
                   ),
-                ),
-              )
-          : _downloadPercentage < 100 && _zipFilePath == "" ?
-            Expanded(child: downloadProgress())
-            :
-            Expanded(child: hashingFile()),
-          Divider(),
+                  Expanded(
+                    child: Program(su_logo,
+                        su_name,
+                        su_desc,
+                        su_realPath,
+                        su_button,
+                            (){launchURL(Uri.parse("https://www.secureupdater.com/download/"));}
+                    ),
+                  ),
+                  Expanded(
+                    child: Program(da_logo,
+                        da_name,
+                        da_desc,
+                        da_realPath,
+                        da_button,
+                            (){
+                          downloadFile(da_link['url'],da_link['file']);
+                        }
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+              : _downloadPercentage < 100 && _zipFilePath == "" ?
+          Expanded(child: downloadProgress())
+              :
+          Expanded(child: hashingFile()),
+          const Divider(),
           Row(children: [
             const Expanded(
                 flex: 2,
                 child: Padding(
                   padding: EdgeInsets.all(10.0),
                   child:
-                      Text("@2022 - All rights reserved, Schrock Innovations "),
+                  Text("@2022 - All rights reserved, Schrock Innovations "),
                 )),
             const VerticalDivider(
               color: Colors.blueAccent,
@@ -339,13 +348,12 @@ class _DashboardLayoutState extends State<DashboardLayout> {
             Expanded(
               child: Container(
                   decoration: const BoxDecoration(
-                      // color: Colors.grey,
-                      ),
+                    // color: Colors.grey,
+                  ),
                   alignment: AlignmentDirectional.bottomEnd,
                   child: Padding(
-                    padding: EdgeInsets.all(5.0),
+                    padding: const EdgeInsets.all(5.0),
                     child: ElevatedButton(
-                      child: Text('Start Installation'),
                       style: ElevatedButton.styleFrom(
                         foregroundColor: Colors.white,
                         backgroundColor: Colors.blue,
@@ -359,53 +367,64 @@ class _DashboardLayoutState extends State<DashboardLayout> {
                             fontWeight: FontWeight.bold),
                       ),
                       onPressed: () => {
+
+
                         (!widget.settings.isReinstalling)
                             ? showDialog<String>(
-                                context: context,
-                                builder: (BuildContext context) => AlertDialog(
-                                  title: const Text('Start Installation?'),
-                                  content: const Text(
-                                      'This installation takes one valid license from '
-                                      'your available licenses.'),
-                                  actions: <Widget>[
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.pop(context, 'Cancel');
-                                      },
-                                      child: const Text('Cancel'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        /*NEED TO CHECK FOR AVAILABLE SPACE IN HARD DRIVE*/
-                                        if (widget._settings.neededSpace >=
-                                            widget._settings.freeSpace) {
-                                          final snackBar = SnackBarBottom(
-                                              "Sorry, you need an additional license",
+                          context: context,
+                          builder: (BuildContext context) => AlertDialog(
+                            title: const Text('Start Installation?'),
+                            content: const Text(
+                                'This installation takes one valid license from '
+                                    'your available licenses.'),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context, 'Cancel');
+                                },
+                                child: const Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () async {
+                                  print(_driveHealth);
+                                  /*NEED TO CHECK FOR AVAILABLE SPACE IN HARD DRIVE*/
+                                  if (widget._settings.neededSpace >=
+                                      widget._settings.freeSpace) {
+                                    final snackBar = SnackBarBottom(
+                                        "Sorry, you need an additional license",
+                                            (_) {});
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(snackBar);
+                                  } else {
+                                    if (widget.settings.licenseAvailable <
+                                        1) {
+                                      final snackBar = SnackBarBottom(
+                                          "Sorry, you need an additional license",
                                               (_) {});
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(snackBar);
-                                        } else {
-                                          if (widget.settings.licenseAvailable <
-                                              1) {
-                                            final snackBar = SnackBarBottom(
-                                                "Sorry, you need an additional license",
-                                                (_) {});
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(snackBar);
-                                          } else {
-                                            startDownloadingProcess();
-                                          }
-                                        }
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(snackBar);
+                                    }
+                                    else if(_driveHealth != "100%"){
+                                      final snackBar = SnackBarBottom(
+                                          "Sorry, your Hard drive is failing. It is not safe to Download this update without possible loosing data",
+                                              (_) {});
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(snackBar);}
+                                    else {
+                                      startDownloadingProcess();
+                                    }
+                                  }
 
-                                        Navigator.pop(context, 'Continue');
-                                      },
-                                      child: const Text('Continue'),
-                                    ),
-                                  ],
-                                ),
-                              )
+                                  Navigator.pop(context, 'Continue');
+                                },
+                                child: const Text('Continue'),
+                              ),
+                            ],
+                          ),
+                        )
                             : startDownloadingProcess(),
                       },
+                      child: const Text('Start Installation'),
                     ),
                   )),
             ),

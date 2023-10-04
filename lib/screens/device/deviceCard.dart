@@ -34,7 +34,7 @@ class _DeviceCardState extends State<DeviceCard> {
   Settings get settings => widget._settings;
   int get freeSpace => _freeSpace;
   int get totalSpace => _totalSpace; // Scan for disks in the system.
-  String get driveHealth => _driveHealth;
+  String get driveHealth => _driveHealth; //scans the health of the drive.
 
   @override
   initState() {
@@ -64,11 +64,11 @@ class _DeviceCardState extends State<DeviceCard> {
     return 1;
   }
   Future<String> getMainDriveHealth() async {
-      widget._settings.driveHealth = await driveHealthGetter().health(0);
+    widget._settings.driveHealth = await driveHealthGetter().health(0);
 
-    String health = await driveHealthGetter().health(0);
+    _driveHealth = await driveHealthGetter().health(0);
 
-    return health;
+    return _driveHealth;
   }
 
   @override
@@ -100,34 +100,47 @@ class _DeviceCardState extends State<DeviceCard> {
                           ),
                         ),
                         Expanded(
-                          flex: 4,
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 0.0),
-                            child: SizedBox(
-                              width: double.infinity,
-                              height: double.infinity,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  TitleWid("OS Information"),
-                                  SubTitleWid('Computer Name: ${settings.machine['computerName']}'),
-                                  SubTitleWid('Current OS: ${settings.machine['productName']}'),
-                                  SubTitleWid(
-                                      'Current Build: ${settings.machine['displayVersion']} (${settings.machine['buildNumber']})'
-                                  ),
-                                  const Divider(),
-                                  TitleWid("Hard Drive Info"),
-                                  SubTitleWid("C drive total space: $_totalSpace GB"),
-                                  SubTitleWid("C drive free space: $_freeSpace GB"),
-                                  (settings.neededSpace>=freeSpace) ?
+                            flex: 4,
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(10.0, 0.0, 0.0, 0.0),
+                              child: SizedBox(
+                                width: double.infinity,
+                                height: double.infinity,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    TitleWid("OS Information"),
+                                    SubTitleWid('Computer Name: ${settings.machine['computerName']}'),
+                                    SubTitleWid('Current OS: ${settings.machine['productName']}'),
+                                    SubTitleWid(
+                                        'Current Build: ${settings.machine['displayVersion']} (${settings.machine['buildNumber']})'
+                                    ),
+                                    const Divider(),
+                                    TitleWid("Hard Drive Info"),
+                                    SubTitleWid("C drive total space: $_totalSpace GB"),
+                                    SubTitleWid("C drive free space: $_freeSpace GB"),
+                                    (settings.neededSpace>=freeSpace) ?
                                     SubTitleWid("Min. available needed : ${settings.neededSpace} GB", Colors.red)
-                                  :
-                                    SubTitleWid("Min. available needed : ${settings.neededSpace} GB")
-                                ],
+                                        :
+                                    SubTitleWid("Min. available needed : ${settings.neededSpace} GB"),
+                                    FutureBuilder(future: getMainDriveHealth(),
+                                      builder:(context, snapshot) {
+                                        Widget healthpresenter = SizedBox(height: 10,width: 10,child: CircularProgressIndicator());
+                                        String health = "";
+                                        if(snapshot.hasData){health = snapshot.data.toString();
+                                        if(health == "100%"){healthpresenter =SubTitleWid("C Drive Health: "+health);
+                                        _driveHealth = health;
+                                        }
+                                        else{healthpresenter =SubTitleWid("C Drive Health: "+health,Colors.red);}
+                                        }
+                                        return healthpresenter;
+                                      },
+                                    )
+                                  ],
+                                ),
                               ),
-                            ),
-                          )
+                            )
                         )
                       ]
                   ),

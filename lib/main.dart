@@ -177,6 +177,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        automaticallyImplyLeading: true,
         title: const Text('Schrock Safe Upgrade Installer'),
         flexibleSpace: Container(child: MoveWindow()),
         actions: [
